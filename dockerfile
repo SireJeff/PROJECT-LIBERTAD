@@ -10,17 +10,13 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application files
+# --- NEW: Copy all configuration and source code ---
+# This will copy main.py, .env, and emails.txt into the image.
+# The .dockerignore file will prevent other things from being copied.
 COPY . .
 
-# Create the default directory for persistent storage
-# This directory will be the target for a volume mount
-RUN mkdir -p /app/data
-
-# Set environment variables (can be overridden at runtime)
-# We define PERSISTENT_STORAGE_PATH here to ensure it points to the created directory
-ENV PYTHONUNBUFFERED=1 \
-    PERSISTENT_STORAGE_PATH=/app/data
+# Set the persistent storage path (the container still needs a place for the session)
+ENV PERSISTENT_STORAGE_PATH=/app/data
 
 # Command to run the application
 CMD ["python", "main.py"]
