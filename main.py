@@ -78,24 +78,30 @@ def get_email_recipients():
 
 
 def send_email(categorized_links, total_links_found):
-    """Sends an email with attachments and robust, stateful retry logic."""
+    """Sends an email with an updated, more urgent message and attachments."""
     recipients = get_email_recipients()
     if not recipients:
         logging.warning("No email recipients found, skipping email."); return
 
     logging.info("Preparing to send email with attachments...")
     
-    subject = "وصل بمونیم، کنار هم بمونیم"
+    # --- NEW: Updated subject and email body for a more critical situation ---
+    subject = "اطلاعات حیاتی برای شرایط اضطراری و لیست‌های اتصال"
+    
     html_body = """
     <html><head><meta charset="UTF-8"></head>
     <body style='font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.7;'>
-        <div style="direction: rtl; text-align: right; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-            <h2 style="color: #333;">سلام دوست عزیز،</h2>
-            <p>در این روزهای سخت و پر از استرس، می‌دونم که هر خبری می‌تونه نگران‌کننده باشه. اما می‌خواستم یک لحظه بهت یادآوری کنم که ما تنها نیستیم.</p>
-            <p>مهم نیست شرایط چقدر سخت بشه، ما راهی برای عبور ازش پیدا می‌کنیم. مهم اینه که هوای همدیگه رو داشته باشیم و فراموش نکنیم که قدرت ما در کنار هم بودن ماست.</p>
-            <p>در ادامه، ابزارهایی برای متصل موندن و یک فایل راهنما برای شرایط اضطراری فرستادم. امیدوارم به کارت بیاد.</p>
-            <p>مراقب خودت باش و یادت نره، ما از این روزها هم عبور می‌کنیم. ❤️</p>
-            <p>پیشنهاد یا کمکی داشتی یا خواستی هستیم @sire_jeff</p>
+        <div style="direction: rtl; text-align: right; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
+            <div style="padding: 15px; border: 2px solid #d9534f; border-radius: 8px; background-color: #fdf7f7; margin-bottom: 20px;">
+                <h2 style="color: #c9302c; margin-top: 0;">یک توصیه‌ی بسیار مهم</h2>
+                <p>دوستان، بر اساس شنیده‌ها که امیدواریم هرگز درست نباشه، ظاهراً تصمیماتی برای قطع کامل اینترنت خارجی گرفته شده. لطفاً این موضوع رو جدی بگیرید.</p>
+                <p><strong>از الان به فکر دانلود ابزارهای ارتباطی P2P (نقطه به نقطه) و ذخیره‌سازی آموزش‌های زمان جنگ و اورژانسی باشید.</strong></p>
+                <p>فایل راهنمای پیوست شده می‌تونه کمک‌کننده باشه. لطفاً اون رو دانلود و ذخیره کنید و برای دیگران هم بفرستید.</p>
+            </div>
+            
+            <p>در این شرایط، تنها کاری که از دست ما برمیاد اینه که هوای همدیگه رو داشته باشیم و به هم برای حفظ آرامش و دسترسی به اطلاعات کمک کنیم. این ایمیل هم در همین راستا ارسال می‌شه.</p>
+            <p>امیدوارم در امنیت و سلامت باشید. ❤️</p>
+            
             <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
             <p style="font-size: 0.9em; color: #777;">لیست‌های پروکسی به صورت فایل‌های متنی (.txt) و راهنمای شرایط اضطراری به صورت PDF پیوست شده‌اند.</p>
         </div>
@@ -123,9 +129,8 @@ def send_email(categorized_links, total_links_found):
     else:
         logging.warning(f"Guide PDF file not found at '{GUIDE_PDF_FILE}'. Skipping attachment.")
 
-    # --- MODIFIED: Smart retry logic ---
-    max_retries = 3
-    sent_to = set() # Track recipients who have received the email in this batch
+    max_retries = 300
+    sent_to = set()
 
     for attempt in range(max_retries):
         remaining_recipients = [r for r in recipients if r not in sent_to]
@@ -145,7 +150,6 @@ def send_email(categorized_links, total_links_found):
                     msg['Subject'] = subject
                     msg.attach(MIMEText(html_body, 'html', 'utf-8'))
                     
-                    # Re-attach files for each message
                     for att in attachments:
                         msg.attach(att)
                     if pdf_attachment:
@@ -153,9 +157,8 @@ def send_email(categorized_links, total_links_found):
                     
                     server.send_message(msg)
                     logging.info(f"Email successfully sent to {recipient}")
-                    sent_to.add(recipient) # Mark as sent
+                    sent_to.add(recipient)
             
-            # If the loop completes without error, we are done
             logging.info("All emails sent successfully.")
             return
 
@@ -235,11 +238,9 @@ async def main_task():
 
     while True:
         logging.info("Starting new scrape cycle...")
-        state = load_state() # We still load the state to record our progress
+        state = load_state() 
         all_new_links = {protocol: set() for protocol in REGEX_PATTERNS}
         
-        # --- MODIFIED SCRAPING LOGIC ---
-        # Always fetch messages from the last 8 hours to ensure nothing is missed
         time_offset_hours = RUN_INTERVAL / 3600
         offset_date = datetime.utcnow() - timedelta(hours=time_offset_hours)
         logging.info(f"Fetching all messages from the last {int(time_offset_hours)} hours.")
@@ -249,7 +250,6 @@ async def main_task():
                 channel_entity = await client.get_entity(channel_name)
                 channel_id_str = str(channel_entity.id)
                 
-                # We use offset_date on EVERY run now
                 async for message in client.iter_messages(channel_entity, offset_date=offset_date, reverse=True):
                     links = extract_links(message)
                     if links:
@@ -257,7 +257,6 @@ async def main_task():
                             for protocol, pattern in REGEX_PATTERNS.items():
                                 if re.match(pattern, link, re.IGNORECASE):
                                     all_new_links[protocol].add(link); break
-                    # We still update the state file to keep track of the latest message
                     state[channel_id_str] = max(state.get(channel_id_str, 0), message.id)
             except Exception as e:
                 logging.error(f"Error processing channel {channel_name}: {e}")
