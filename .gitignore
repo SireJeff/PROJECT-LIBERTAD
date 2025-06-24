@@ -1,0 +1,6 @@
+.env
+emails.txt
+sent_users.txt
+telegram_test_session.session
+distributor_session.session
+./data/bot.session

@@ -1,0 +1,20 @@
+# Telegram Client API Credentials
+API_ID=
+API_HASH=
+
+# List of public Telegram channels to scrape
+TELEGRAM_CHANNELS=https://t.me/PinkProxy,https://t.me/mtpproxyirani,https://t.me/iMTProto,https://t.me/drproxy_channel,https://t.me/MTProxyStar,https://t.me/Chrome_Proxy,https://t.me/Outline_Vpn,https://t.me/iRoProxy,https://t.me/Vpn_Mafia,https://t.me/SRCVPN,https://t.me/chatnakonn,https://t.me/ProxyDaemi,https://t.me/mehrosaboran,https://t.me/TelMTProto,https://t.me/DailyV2RY,https://t.me/MARAMBASHI,https://t.me/ProxyMTProto,https://t.me/vpnowl
+
+# Target Telegram group/channel for reports
+TARGET_TELEGRAM_CHAT_ID=
+
+# Liara Email Configuration
+MAIL_HOST=smtp.c1.liara.email
+MAIL_PORT=587
+MAIL_USER=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=
+# Bot Settings
+RUN_INTERVAL_SECONDS=28800
+# UPDATED: Use a local relative path that works on any OS
+PERSISTENT_STORAGE_PATH=./data
