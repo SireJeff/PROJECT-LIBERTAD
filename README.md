@@ -1,53 +1,48 @@
-# Dockerized Telegram Proxy Scraper and Notifier Bot
+# Project Libertad: Telegram Scraper & Distributor
 
-This project provides a Python-based bot that monitors public Telegram channels, scrapes proxy links (MTProto, VLESS, VMess, Shadowsocks), and sends them to recipients via both email (with attachments) and a designated Telegram group.
+![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+![Deployment](https://img.shields.io/badge/deploy-Docker-blue)
 
-The application is fully containerized with Docker and designed for stateless deployment on platforms like RunonFlux.
+**Project Libertad** is a dual-purpose Python application designed for community support and information dissemination during periods of internet restriction. It consists of two main, independent components:
 
-## Features
+1.  **Proxy Scraper & Notifier**: A continuously running, Dockerized service that monitors public Telegram channels for new proxy links, categorizes them, and distributes them via email and a designated Telegram group.
+2.  **SSH Credential Distributor**: A one-time, manually-run script that securely distributes unique SSH credentials from an Excel file to each member of a specific Telegram group via private message.
 
-- **Telegram Client API**: Uses `Telethon` to read all messages from public channels.
-- **Robust Link Extraction**: Finds multiple proxy types in plain text and hidden hyperlinks.
-- **Dual Notification Channels**:
-    - **Email**: Sends an email with a Persian introduction and categorized links attached as `.txt` files.
-    - **Telegram Group**: Sends formatted, chunked messages with categorized links to a specific group or channel.
-- **Dynamic Configuration**: All settings are managed via environment variables.
-- **Persistent State**: Remembers the last processed message per channel to prevent duplicates.
+---
 
-## Setup
+## 1. Component: Proxy Scraper & Notifier (`main.py`)
 
-### Getting Telegram API Credentials
-1.  Log in to your Telegram account at [my.telegram.org](https://my.telegram.org).
-2.  Go to "API development tools" and create a new application to get your `api_id` and `api_hash`.
+This is the primary, production-ready component of the project. It runs 24/7 as a service to provide a constant stream of fresh proxy links.
 
-### How to Find a `TARGET_TELEGRAM_CHAT_ID`
-1. Add a bot like `@userinfobot` to your target group.
-2. Type `/start` in the group.
-3. The bot will reply with the group's ID (it will be a large negative number).
-4. Remove the bot after you have the ID.
+### Core Features
 
-## Configuration
+- **Automated Scraping**: Monitors a list of public Telegram channels every 8 hours.
+- **Intelligent Fetching**: Always re-scans the last 8 hours of messages on every run to ensure no links from failed cycles are missed.
+- **Multi-Protocol Support**: Extracts and categorizes MTProto, VLESS, VMess, and Shadowsocks links.
+- **Dual Notification System**:
+  - **Email**: Sends a formatted email with a supportive message, categorized proxy lists as `.txt` attachments, and a PDF guide.
+  - **Telegram Group**: Posts a clean, formatted summary of new links to a designated group, embedding MTProto links for brevity.
+- **Stateless & Deployable**: Designed to be deployed as a Docker container on any cloud platform (e.g., RunonFlux) using persistent volumes for state.
 
-The application is configured via environment variables. Create a `.env` file from the example provided, and place your recipient email addresses in `emails.txt`.
+### Tech Stack
 
-## Running Locally with Docker
+- **Language**: Python 3.9+
+- **Libraries**: Telethon, python-dotenv
+- **Containerization**: Docker
 
-1.  **Build the Docker Image**:
-    ```bash
-    docker build -t telegram-proxy-scraper .
-    ```
+### Deployment Instructions
 
-2.  **Run the Docker Container**:
-    ```bash
-    docker run -d \
-      --name proxy-scraper-bot \
-      -v "$(pwd)/data:/app/data" \
-      --env-file .env \
-      telegram-proxy-scraper
-    ```
-    - The `-v "$(pwd)/data:/app/data"` command mounts a local directory for persistent storage of your session file and message state.
+This service is designed to be deployed as a Docker container.
 
-3.  **Check Logs**:
-    ```bash
-    docker logs -f proxy-scraper-bot
-    ```
+#### Step 1: Prepare Configuration Files
+
+1.  **`.env` File**: Create a `.env` file from the `env.example` template and fill it with your credentials. **Do not commit this file to Git.**
+2.  **`emails.txt`**: Add your list of recipient emails, one per line.
+3.  **`emergency_guide.pdf`**: Place the PDF guide file (e.g., `در صورت وقوع بحران یا جنگ.pdf`) in the root directory and update its name in the `.env` file if needed.
+
+#### Step 2: Build the Docker Image
+
+Build and tag the image for Docker Hub. Replace `yourdockerhubusername` with your actual username.
+```bash
+docker build -t yourdockerhubusername/project-libertad-scraper:latest .
